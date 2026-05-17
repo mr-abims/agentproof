@@ -5,7 +5,12 @@
 import { useSyncExternalStore } from "react";
 
 import { MockContractClient } from "./contractClient";
-import { demoAgents, demoPrivateReputation } from "./mockAgentData";
+import {
+  demoAgents,
+  demoPrivateReputation,
+  demoThresholds,
+  preVerifiedAgentIds,
+} from "./mockAgentData";
 
 let _client: MockContractClient | null = null;
 const listeners = new Set<() => void>();
@@ -15,6 +20,15 @@ function getClient(): MockContractClient {
   if (_client) return _client;
   const c = new MockContractClient();
   c.seed(demoAgents, demoPrivateReputation);
+  // Pre-verify a subset so the marketplace shows a realistic mix of states
+  // on first load. The remaining agents stay unverified so the demo flow
+  // (Generate AgentProof for agent_001, fail for agent_003) still has
+  // something to do.
+  for (const id of preVerifiedAgentIds) {
+    const thresholds = demoThresholds[id];
+    if (!thresholds) continue;
+    c.submitVerification(id, thresholds);
+  }
   _client = c;
   return c;
 }

@@ -32,12 +32,24 @@ const TAGLINE: Record<string, string> = {
     "Market microstructure analysis with on-chain risk modeling.",
   agent_003:
     "Tier-1 triage with attached escalation policy + tone control.",
+  agent_004:
+    "PR review, refactors, and test-suite triage across TS / Rust / Go.",
+  agent_005:
+    "Long-context literature synthesis with traceable citation graphs.",
+  agent_006:
+    "General-purpose research, drafting, and structured task automation.",
+  agent_007:
+    "Continuous security scanning for runtime config + dependency drift.",
 };
 
 const PRICING: Record<string, string> = {
   agent_001: "$2.40 / 1k tokens",
   agent_002: "$0.90 / 1k tokens",
   agent_003: "$0.30 / 1k tokens",
+  agent_004: "$1.10 / 1k tokens",
+  agent_005: "$1.60 / 1k tokens",
+  agent_006: "$0.45 / 1k tokens",
+  agent_007: "$0.75 / 1k tokens",
 };
 
 type Filter = "all" | "verified" | "unverified";
