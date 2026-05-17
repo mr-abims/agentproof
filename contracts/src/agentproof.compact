@@ -1,0 +1,172 @@
+pragma language_version >= 0.22;
+
+import CompactStandardLibrary;
+
+// ---------- Public types ----------
+
+export enum AgentCategory {
+  SECURITY,
+  RESEARCH,
+  TRADING,
+  CUSTOMER_SUPPORT,
+  CODING,
+  GENERAL
+}
+
+// `issuer` is the hash-based public key (= persistentHash of the issuer's
+// secret with a domain separator). Only the holder of the corresponding
+// secret can produce a matching public key, so submit/revoke can require
+// caller == agent.issuer without ever exposing the secret on chain.
+export struct Agent {
+  category: AgentCategory,
+  issuer: Bytes<32>
+}
+
+export struct Verification {
+  verified: Boolean,
+  completedTasksGte: Uint<32>,
+  successRateGte: Uint<8>,
+  safetyScoreGte: Uint<8>,
+  noActiveSlashes: Boolean,
+  revoked: Boolean
+}
+
+// ---------- Private witness payload ----------
+
+export struct ReputationData {
+  completedTasks: Uint<32>,
+  successfulTasks: Uint<32>,
+  safetyScore: Uint<8>,
+  activeSlashes: Uint<32>
+}
+
+// ---------- Ledger state ----------
+
+export ledger agents: Map<Field, Agent>;
+export ledger verifications: Map<Field, Verification>;
+
+constructor() {
+  // Maps are empty by default.
+}
+
+// ---------- Private witnesses ----------
+
+// Private reputation database supplied by the issuer. Only threshold
+// inequalities ever leave the proof; raw values stay local.
+witness getReputation(agentId: Field): ReputationData;
+
+// 32-byte secret that authorises this CLI/agent operator as a specific
+// issuer. The hash of this secret (with the domain separator below) is
+// the public identifier that lands on chain.
+witness issuerSecret(): Bytes<32>;
+
+// ---------- Pure helpers ----------
+
+// Hash-based "public key" derivation. Domain separator prevents collision
+// with any other persistent hash in the system (security skill §5).
+pure circuit issuerPublicKey(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>(
+    [pad(32, "agentproof:issuer:v1"), secret]
+  );
+}
+
+// ---------- Circuits ----------
+
+// Anyone can call registerAgent, but the issuer identity that gets stored
+// is bound to *their* issuer secret. They cannot impersonate another issuer
+// because they cannot produce that issuer's public-key hash.
+export circuit registerAgent(
+  agentId: Field,
+  category: AgentCategory
+): [] {
+  assert(!agents.member(disclose(agentId)), "agent already registered");
+
+  const issuer = issuerPublicKey(issuerSecret());
+
+  agents.insert(disclose(agentId), Agent {
+    category: disclose(category),
+    issuer: disclose(issuer)
+  });
+}
+
+// Only the registering issuer can submit a verification. The assert at
+// the top is the access control: produce the agent's issuer hash, prove
+// you control the matching secret. No proof is produced if you don't.
+export circuit submitVerification(
+  agentId: Field,
+  minCompletedTasks: Uint<32>,
+  minSuccessRate: Uint<8>,
+  minSafetyScore: Uint<8>,
+  requireNoActiveSlashes: Boolean
+): [] {
+  assert(agents.member(disclose(agentId)), "agent not registered");
+  const agent = agents.lookup(disclose(agentId));
+
+  // Access control — must hold the issuer secret that was bound at register.
+  assert(agent.issuer == issuerPublicKey(issuerSecret()),
+    "caller is not the registered issuer");
+
+  // Private witness call. `rep` stays inside the proof transcript.
+  const rep = getReputation(agentId);
+
+  // Witness sanity. Without these a dishonest issuer could pass thresholds
+  // with impossible private data (security skill §4 pattern 6).
+  assert(rep.successfulTasks <= rep.completedTasks,
+    "successfulTasks exceeds completedTasks");
+  assert(rep.safetyScore <= 100,
+    "safetyScore out of range");
+
+  // Threshold proofs. If any assertion fails, no transaction is produced
+  // and nothing is written on chain — the privacy-preserving way to model
+  // a failed verification.
+  assert(rep.completedTasks >= minCompletedTasks,
+    "completedTasks below threshold");
+
+  // Integer-math success rate:
+  //   successfulTasks * 100 >= completedTasks * minSuccessRate
+  // Widened to Uint<64> to keep the product well within range.
+  assert(
+    (rep.successfulTasks as Uint<64>) * (100 as Uint<64>) >=
+      (rep.completedTasks as Uint<64>) * (minSuccessRate as Uint<64>),
+    "successRate below threshold"
+  );
+
+  assert(rep.safetyScore >= minSafetyScore,
+    "safetyScore below threshold");
+
+  assert(!requireNoActiveSlashes || rep.activeSlashes == 0,
+    "active slashes present");
+
+  // Only public thresholds are written to the ledger. The block timestamp
+  // is recorded by the indexer for the containing tx — no need to also
+  // store a user-supplied (and therefore untrustworthy) timestamp here.
+  verifications.insert(disclose(agentId), Verification {
+    verified: true,
+    completedTasksGte: disclose(minCompletedTasks),
+    successRateGte: disclose(minSuccessRate),
+    safetyScoreGte: disclose(minSafetyScore),
+    noActiveSlashes: disclose(requireNoActiveSlashes),
+    revoked: false
+  });
+}
+
+// Only the issuer that registered the agent can revoke its verification.
+export circuit revokeVerification(agentId: Field): [] {
+  assert(verifications.member(disclose(agentId)), "no verification to revoke");
+  const agent = agents.lookup(disclose(agentId));
+
+  assert(agent.issuer == issuerPublicKey(issuerSecret()),
+    "caller is not the registered issuer");
+
+  // Ledger struct values are not first-class; read, rebuild, re-insert.
+  const v = verifications.lookup(disclose(agentId));
+
+  verifications.insert(disclose(agentId), Verification {
+    verified: false,
+    completedTasksGte: v.completedTasksGte,
+    successRateGte: v.successRateGte,
+    safetyScoreGte: v.safetyScoreGte,
+    noActiveSlashes: v.noActiveSlashes,
+    revoked: true
+  });
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@agentproof/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AgentProof Compact contract and Compact-generated TypeScript bindings.",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./witnesses": {
+      "types": "./src/witnesses.ts",
+      "import": "./src/witnesses.ts",
+      "default": "./src/witnesses.ts"
+    },
+    "./managed/*": "./src/managed/*"
+  },
+  "files": [
+    "src/agentproof.compact",
+    "src/witnesses.ts",
+    "src/index.ts",
+    "src/managed"
+  ],
+  "scripts": {
+    "clean": "rm -rf src/managed",
+    "compile:compact": "compact compile src/agentproof.compact src/managed/agentproof",
+    "build": "npm run compile:compact",
+    "rebuild": "npm run clean && npm run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

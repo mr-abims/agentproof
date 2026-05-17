@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg-grad" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#1f243a"></stop>
+      <stop offset="100%" stop-color="#101325"></stop>
+    </linearGradient>
+    
+    <linearGradient id="ai-beam" x1="0" x2="1" y1="0.5" y2="0.5">
+      <stop offset="0%" stop-color="#7cd0f0"></stop>
+      <stop offset="100%" stop-color="#a98be5"></stop>
+    </linearGradient>
+    <radialGradient id="ai-node" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#bfe6f5"></stop>
+      <stop offset="60%" stop-color="#7cc7df"></stop>
+      <stop offset="100%" stop-color="#5a8eb8"></stop>
+    </radialGradient>
+    <linearGradient id="ai-green" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#7be39e"></stop>
+      <stop offset="100%" stop-color="#52cca0"></stop>
+    </linearGradient>
+  
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg-grad)"></rect>
+  <g transform="translate(72 72) scale(5.875)">
+    
+  <g stroke-linecap="round" fill="none">
+    <line x1="5" y1="16" x2="26" y2="30" stroke="url(#ai-beam)" stroke-width="2.6" opacity="0.6"></line>
+    <line x1="3" y1="32" x2="26" y2="32" stroke="url(#ai-beam)" stroke-width="3"></line>
+    <line x1="5" y1="48" x2="26" y2="34" stroke="url(#ai-beam)" stroke-width="2.6" opacity="0.6"></line>
+  </g>
+  <circle cx="30" cy="32" r="6.5" fill="url(#ai-node)"></circle>
+  <circle cx="28.4" cy="30" r="1.6" fill="rgba(255,255,255,0.55)"></circle>
+  <path d="M37 32 L44 40 L60 14" stroke="url(#ai-green)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+
+  </g>
+</svg>

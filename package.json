@@ -1,0 +1,24 @@
+{
+  "name": "agentproof",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Privacy-preserving reputation proofs for AI agents, built on Midnight.",
+  "license": "MIT",
+  "workspaces": [
+    "contracts",
+    "frontend",
+    "cli"
+  ],
+  "scripts": {
+    "build:contracts": "npm run build --workspace=@agentproof/contracts",
+    "dev": "npm run dev --workspace=@agentproof/frontend",
+    "cli:preprod": "npm run preprod --workspace=@agentproof/cli",
+    "build": "npm run build:contracts && npm run build --workspace=@agentproof/frontend",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "overrides": {
+    "@midnight-ntwrk/compact-runtime": "0.16.0",
+    "@midnight-ntwrk/ledger-v8": "8.0.3",
+    "@midnight-ntwrk/midnight-js-network-id": "4.0.4"
+  }
+}

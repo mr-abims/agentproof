@@ -1,0 +1,12 @@
+node_modules/
+*.log
+.DS_Store
+
+# Compact compiler output:
+#   - contract/   = TS bindings (committed — needed by the Vercel frontend build)
+#   - keys/       = prover + verifier keys (~3MB each — only the CLI needs them; recompile locally)
+#   - zkir/       = zero-knowledge IR (only the CLI needs them; recompile locally)
+#   - compiler/   = build metadata (regenerated on every compile)
+src/managed/agentproof/keys/
+src/managed/agentproof/zkir/
+src/managed/agentproof/compiler/

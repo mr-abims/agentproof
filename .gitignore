@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.next/
+out/
+*.log
+*.tsbuildinfo
+.DS_Store
+.env
+.env.local
+
+# Local agent + skill content (not part of the public submission)
+.agents/
+.claude/
+skills-lock.json
+
+# CLI runtime artifacts (LevelDB private state + per-run logs)
+cli/logs/
+cli/agentproof-private-state*/
+**/agentproof-private-state*/
